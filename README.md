@@ -11,11 +11,13 @@ which encodes the non-equilibrium charge and spin density matrix.
 The equations of motion couple $G^{<}_s$ to the system–lead Green function
 $G^{<}_{e\alpha s}(k,t)$ via the GKBA:
 
-$$i\,\partial_t G^{<}_{e\alpha s} = \left[h_{e\alpha},\, G^{<}_{e\alpha s}\right] + h_{e\alpha s}\,G^{<}_s - g^{<}_\alpha\,h_{e\alpha s}$$
+$$i\,\partial_t G^{<}_{e\alpha s}(k) = h_{e\alpha}(k)\,G^{<}_{e\alpha s}(k) - G^{<}_{e\alpha s}(k)\,h_s + h_{e\alpha s}(k)\,G^{<}_s - g^{<}_\alpha(k)\,h_{e\alpha s}(k)$$
 
-$$i\,\partial_t G^{<}_s = \left[h_s,\, G^{<}_s\right] - \sum_\alpha \left(h_{se\alpha}\,G^{<}_{e\alpha s} + \mathrm{h.c.}\right)$$
+$$i\,\partial_t G^{<}_s = \left[h_s,\, G^{<}_s\right] - \sum_{\alpha,k} \left(h_{se\alpha}(k)\,G^{<}_{e\alpha s}(k) + \mathrm{h.c.}\right)$$
 
-All equations use natural units with $\hbar = 1$.
+The first equation holds for each lead mode $k$ independently. $G^{<}_{e\alpha s}(k)$ is a
+row vector in system space — $h_{e\alpha}(k)$ (a scalar in k-rep) acts on the lead index
+while $h_s$ acts on the system index. All equations use natural units with $\hbar = 1$.
 
 ## Dynamics types
 
