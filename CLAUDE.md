@@ -129,6 +129,23 @@ println(real(ov.cden_i))
 
 ---
 
+## PyPlot style
+
+All notebooks must include this cell immediately after `using PyPlot`:
+
+```julia
+rc("text", usetex=true)
+rc("font", family="serif")
+rc("text.latex", preamble=raw"\usepackage{amsmath}")
+rc("font", size=18)
+rc("axes", labelsize=22, titlesize=22)
+rc("xtick", labelsize=18)
+rc("ytick", labelsize=18)
+rc("legend", fontsize=16)
+```
+
+---
+
 ## Do not
 
 - Commit `data/` or `Manifest.toml` — both are git-ignored for good reason.
