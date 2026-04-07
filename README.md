@@ -8,15 +8,14 @@ the equations of motion for the lesser Green function G^<(t).
 
 The central quantity is the lesser Green function of the system G^<_s(t),
 which encodes the non-equilibrium charge and spin density matrix.
-The equations of motion couple G^<_s to the system–lead Green function
-G^<_{eαs}(k,t) via the GKBA:
+The equations of motion couple $G^<_s$ to the system–lead Green function
+$G^<_{e\alpha s}(k,t)$ via the GKBA:
 
-```
-i ∂_t G^<_{eαs} = [h_{eα}, G^<_{eαs}] + h_{eαs} G^<_s − g^<_α h_{eαs}
-i ∂_t G^<_s     = [h_s, G^<_s] − Σ_α (h_{seα} G^<_{eαs} + h.c.)
-```
+$$i\,\partial_t G^<_{e\alpha s} = [h_{e\alpha},\, G^<_{e\alpha s}] + h_{e\alpha s}\,G^<_s - g^<_\alpha\,h_{e\alpha s}$$
 
-All equations use natural units with ħ = 1.
+$$i\,\partial_t G^<_s = [h_s,\, G^<_s] - \sum_\alpha \!\left(h_{se\alpha}\,G^<_{e\alpha s} + \mathrm{h.c.}\right)$$
+
+All equations use natural units with $\hbar = 1$.
 
 ## Dynamics types
 
@@ -28,17 +27,17 @@ All equations use natural units with ħ = 1.
 | `ePosRepDynamics` | position space | dynamic |
 | `WBLDynamics` | wide-band limit + Ozaki poles | analytic |
 
-The WBL dynamics uses the approximation Σ^r = −iΓ/2 (constant self-energy)
+The WBL dynamics uses the approximation $\Sigma^r = -i\Gamma/2$ (constant self-energy)
 and expands the Fermi function in Ozaki poles, reducing the problem to a set
-of auxiliary functions F[k,α](t) without k-space integration.
+of auxiliary functions $F_{k\alpha}(t)$ without k-space integration.
 
 ## Observables
 
 `compute_observables!` fills an `ObservablesVar` with:
-- `curr_α` — charge current per lead
-- `scurr_xα` — spin current (x,y,z) per lead
-- `sden_i1x` — site-resolved spin density
-- `cden_i` — charge density per orbital
+- `curr_α` — charge current $J_\alpha$ per lead
+- `scurr_xα` — spin current $J^x_\alpha$ (x,y,z) per lead
+- `sden_i1x` — site-resolved spin density $\langle S^x_i \rangle$
+- `cden_i` — charge density $\langle n_i \rangle$ per orbital
 
 ## Structure
 
@@ -109,7 +108,7 @@ Useful as an exact reference to benchmark GKBA accuracy.
 
 `Krylov.ipynb` — exact non-interacting evolution via matrix exponentiation
 (`Expokit.jl`). Propagates the single-particle correlation matrix
-C(t+dt) = e^{−iH dt} C(t) e^{iH dt}.
+$C(t+dt) = e^{-iH\,dt}\,C(t)\,e^{iH\,dt}$.
 
 ## Running the tests
 
