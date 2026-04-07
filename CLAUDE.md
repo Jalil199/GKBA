@@ -6,7 +6,9 @@ This file provides guidance for AI assistants (Claude Code, Copilot, etc.) worki
 
 ## Project Overview
 
-**GKBA** is a Julia package for simulating quantum transport in open systems using variants of the Generalized Kadanoff-Baym Ansatz (GKBA). It solves equations of motion for the lesser Green function G<(t) of an interacting central region coupled to fermionic leads, with optional spin-orbit coupling and classical spin dynamics (LLG).
+**GKBA** is a Julia package for simulating quantum transport in open systems using variants of the Generalized Kadanoff-Baym Ansatz (GKBA). It solves equations of motion for the lesser Green function G<(t) of a tight-binding central region (1D chain, nx×ny sites) coupled to fermionic leads, with Rashba spin-orbit coupling, s-d exchange with classical local moments, and optional Landau-Lifshitz-Gilbert (LLG) spin dynamics.
+
+The GKBA reduces the two-time Kadanoff-Baym equations (O(Nt²) cost) to a set of coupled ODEs (O(Nt)), enabling long real-time simulations of spin-transfer torque, spin pumping, and non-equilibrium magnetization dynamics over physically relevant timescales.
 
 **Key references:**
 - PRB 107, 155141 (2023)
@@ -33,9 +35,23 @@ GKBA/
 │   ├── runtests.jl       # 18 unit tests (5 test sets, one per dynamics type)
 │   └── benchmark.jl      # Performance benchmarks and reference solver comparison
 ├── scripts/              # 16 driver scripts for running simulations (see below)
-├── notebooks/            # Jupyter notebook for visualizing output (explore_results.ipynb)
+├── notebooks/
+│   ├── example.ipynb     # End-to-end WBL example: init, time evolution, plots, sanity checks
+│   └── explore_results.ipynb  # Notebook for analyzing data/ output files
 └── legacy/               # 18 archived original per-simulation notebooks (read-only)
 ```
+
+---
+
+## Physics Background (brief)
+
+The central system is a 1D tight-binding chain with Hamiltonian:
+
+```
+H_s = -γ Σ_{<ij>} c†_i c_j  +  γ_so (Rashba terms)  -  j_sd Σ_i m_i · σ_i
+```
+
+Two semi-infinite leads (also 1D tight-binding, hopping γ, coupling γc) are attached to the first and last sites. The system is driven out of equilibrium by a bias voltage (different chemical potentials μ_α per lead). The classical moments m_i evolve under the LLG equation, driven by the quantum spin-transfer torque computed from G<(t).
 
 ---
 
@@ -97,7 +113,7 @@ All dynamics types live in `src/types.jl` and are distinguished by how lead Gree
 
 ## Simulation Workflow
 
-All scripts follow this pattern:
+All scripts follow this pattern. The canonical working example is `notebooks/example.ipynb` (WBL, precessing spins):
 
 ```julia
 using GKBA, DifferentialEquations
@@ -106,19 +122,41 @@ using GKBA, DifferentialEquations
 dv, ov = init_gkba_wbl(; nx=2, ny=1, nk=400, γ=0.2, γso=0.1, γc=0.0,
                          j_sd=0.5, Temp=0.01, μ_α=[0.5, -0.5], ...)
 
-# 2. Create ODE problem
+# 2. (Optional) Set up precessing spins
+pr_spins = [PrecSpin(i; theta_zero=20.0, T=5.0) for i in 1:nx]
+
+# 3. Create ODE problem
 prob = ODEProblem(eom_gkba_wbl!, dv.rkvec, (0.0, t_end), dv)
 
-# 3. Create integrator (typically RK4 with fixed step)
+# 4. Create integrator (typically RK4 with fixed step)
 integrator = init(prob, RK4(); dt=dt, adaptive=false, save_everystep=false)
 
-# 4. Time evolution loop
+# 5. Time evolution loop
 for t in t_0:t_step:t_end
     step!(integrator, t_step, true)
-    unpack!(dv, integrator.u)       # flat vector → tensor views in dv
-    compute_observables!(ov, dv)    # fill ov with currents, densities, etc.
-    # Write results: ov.curr_α, ov.sden_i1x, ov.scurr_xα, ov.cden_i
+    unpack!(dv, integrator.u)           # flat vector → tensor views in dv
+    compute_observables!(ov, dv)        # fill ov with currents, densities, etc.
+
+    # Update classical spins and rebuild Hamiltonian if using LLG
+    for ps in pr_spins
+        update!(ps, t)
+        dv.vm_i1x[ps.i, :] .= ps.s
+    end
+    dv.hs_ij = build_hs(dv.vm_i1x, nx, ny, γ, γso, j_sd)
+
+    # Access results: ov.curr_α, ov.sden_i1x, ov.scurr_xα, ov.cden_i
 end
+```
+
+### Sanity checks to verify correctness
+
+```julia
+# G^< must remain anti-Hermitian throughout the simulation
+G = dv.Gls_ij
+println("max |G + G†| = ", maximum(abs.(G .+ G')))   # should be ~1e-12
+
+# Charge density ~1 electron/site at half-filling
+println("Charge density: ", round.(real(ov.cden_i), digits=4))
 ```
 
 ---
