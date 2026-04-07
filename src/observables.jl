@@ -50,8 +50,8 @@ function compute_observables!(ov::ObservablesVar,
     # Charge current:  J_α = -2 Re[ Tr(h_seα · G^<_eαs) ]
     @tullio ov.curr_α[α] = real(-conj(dv.hseα_ikα[i,k1,α] * dv.Gleαs_kαi[k1,α,i]))
 
-    # Spin current:  J^s_{x,α} = -2 Re[ Tr(σ_x · h_seα · G^<_eαs) ] × 4π
-    @tullio ov.scurr_xα[x,α] = real(-conj(4π * σ[l,j,x] * dv.hseα_ikα[j,k1,α] * dv.Gleαs_kαi[k1,α,l]))
+    # Spin current:  J^x_{α} = 2 Im[ Tr(σ_x · h_seα · G^<_eαs) ]
+    @tullio ov.scurr_xα[x,α] = real(-conj(2 * σ[l,j,x] * dv.hseα_ikα[j,k1,α] * dv.Gleαs_kαi[k1,α,l]))
 
     # Spin density matrix  S_xij = -i G^<_s σ_x
     @tullio sden_xij[x,i,j] := -1im * dv.Gls_ij[i,j1] * σ[j1,j,x]
