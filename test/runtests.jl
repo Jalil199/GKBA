@@ -24,6 +24,17 @@ function euler_step!(dv, eom!, dt)
     unpack!(dv, dv.rkvec)
 end
 
+# ── Helper: one RK4 step ──────────────────────────────────────────────────────
+function rk4_step!(dv, eom!, dt)
+    u  = dv.rkvec
+    k1 = similar(u); eom!(k1, u,                   dv, 0.0)
+    k2 = similar(u); eom!(k2, u .+ (dt/2) .* k1,  dv, 0.0)
+    k3 = similar(u); eom!(k3, u .+ (dt/2) .* k2,  dv, 0.0)
+    k4 = similar(u); eom!(k4, u .+  dt    .* k3,  dv, 0.0)
+    dv.rkvec .+= (dt/6) .* (k1 .+ 2 .*k2 .+ 2 .*k3 .+ k4)
+    unpack!(dv, dv.rkvec)
+end
+
 # ─────────────────────────────────────────────────────────────────────────────
 @testset "GKBA module" begin
 
@@ -96,6 +107,57 @@ end
         dv.s_α .= 1.0
         compute_observables!(ov, dv)
         @test isapprox(sum(ov.curr_α), 0.0, atol=1e-8)
+    end
+
+    @testset "Krylov check (WBL, single lead)" begin
+        # nx=1, ny=1, nk=4 → state vector has 36 complex elements: cheap for exp()
+        dv_ref, _ = init_gkba_wbl(; nx=1, ny=1, nk=4, γ, γso, γc,
+                                    j_sd=0.0, Temp, nα=1)
+        dv_ref.s_α .= 1.0
+
+        N_steps = 10
+        T       = N_steps * dt          # = 0.1
+
+        n  = length(dv_ref.rkvec)
+        u0 = copy(dv_ref.rkvec)
+
+        # ── Build linear operator: du/dt = A*u + b ───────────────────────────
+        # The WBL EOM with static Hamiltonian is linear in (Gleαs, Gls).
+        # Constant term b = EOM(0); columns of A from EOM(e_j) - b.
+        du_tmp = zeros(ComplexF64, n)
+        eom_gkba_wbl!(du_tmp, zeros(ComplexF64, n), dv_ref, 0.0)
+        b_vec = copy(du_tmp)
+
+        A_mat = zeros(ComplexF64, n, n)
+        e_j   = zeros(ComplexF64, n)
+        for j in 1:n
+            fill!(e_j, 0); e_j[j] = 1
+            eom_gkba_wbl!(du_tmp, e_j, dv_ref, 0.0)
+            A_mat[:, j] .= du_tmp .- b_vec
+        end
+
+        # ── Exact solution via augmented matrix exponential ──────────────────
+        # d/dt [u; 1] = [[A, b]; [0, 0]] * [u; 1]  →  exact at time T
+        Ã = zeros(ComplexF64, n+1, n+1)
+        Ã[1:n, 1:n] .= A_mat
+        Ã[1:n, n+1] .= b_vec
+        u_exact = (exp(Ã * T) * vcat(u0, one(ComplexF64)))[1:n]
+
+        # ── RK4 numerical propagation from the same IC ───────────────────────
+        dv_num, _ = init_gkba_wbl(; nx=1, ny=1, nk=4, γ, γso, γc,
+                                    j_sd=0.0, Temp, nα=1)
+        dv_num.s_α .= 1.0
+        for _ in 1:N_steps
+            rk4_step!(dv_num, eom_gkba_wbl!, dt)
+        end
+
+        # ── Assertions ───────────────────────────────────────────────────────
+        # Full state vector agrees to RK4 global error ~O(dt^4) ≈ 1e-8
+        @test isapprox(u_exact, dv_num.rkvec, atol=1e-6)
+
+        # G^<_s from exact solution stays anti-Hermitian
+        Gls_exact = reshape(u_exact[dv_ref.sz_Gleαs+1:end], dv_ref.dims_Gls)
+        @test isapprox(Gls_exact, -Gls_exact', atol=1e-10)
     end
 
 end
