@@ -2,18 +2,18 @@
 
 Julia module for real-time quantum transport simulations of open quantum systems
 coupled to fermionic leads. Implements several variants of the GKBA and solves
-the equations of motion for the lesser Green function G^<(t).
+the equations of motion for the lesser Green function $G^{<}(t)$.
 
 ## Physics
 
-The central quantity is the lesser Green function of the system G^<_s(t),
+The central quantity is the lesser Green function of the system $G^{<}_s(t)$,
 which encodes the non-equilibrium charge and spin density matrix.
-The equations of motion couple $G^<_s$ to the system–lead Green function
-$G^<_{e\alpha s}(k,t)$ via the GKBA:
+The equations of motion couple $G^{<}_s$ to the system–lead Green function
+$G^{<}_{e\alpha s}(k,t)$ via the GKBA:
 
-$$i\,\partial_t G^<_{e\alpha s} = [h_{e\alpha},\, G^<_{e\alpha s}] + h_{e\alpha s}\,G^<_s - g^<_\alpha\,h_{e\alpha s}$$
+$$i\,\partial_t G^{<}_{e\alpha s} = \left[h_{e\alpha},\, G^{<}_{e\alpha s}\right] + h_{e\alpha s}\,G^{<}_s - g^{<}_\alpha\,h_{e\alpha s}$$
 
-$$i\,\partial_t G^<_s = [h_s,\, G^<_s] - \sum_\alpha \!\left(h_{se\alpha}\,G^<_{e\alpha s} + \mathrm{h.c.}\right)$$
+$$i\,\partial_t G^{<}_s = \left[h_s,\, G^{<}_s\right] - \sum_\alpha \left(h_{se\alpha}\,G^{<}_{e\alpha s} + \mathrm{h.c.}\right)$$
 
 All equations use natural units with $\hbar = 1$.
 
@@ -29,7 +29,7 @@ All equations use natural units with $\hbar = 1$.
 
 The WBL dynamics uses the approximation $\Sigma^r = -i\Gamma/2$ (constant self-energy)
 and expands the Fermi function in Ozaki poles, reducing the problem to a set
-of auxiliary functions $F_{k\alpha}(t)$ without k-space integration.
+of auxiliary functions $F_{k\alpha}(t)$ without $k$-space integration.
 
 ## Observables
 
@@ -115,7 +115,7 @@ Useful as an exact reference to benchmark GKBA accuracy.
 
 `Krylov.ipynb` — exact non-interacting evolution via matrix exponentiation
 (`Expokit.jl`). Propagates the single-particle correlation matrix
-$C(t+dt) = e^{-iH\,dt}\,C(t)\,e^{iH\,dt}$.
+$$C(t+\delta t) = e^{-iH\,\delta t}\,C(t)\,e^{iH\,\delta t}$$
 
 ## Running the tests
 
