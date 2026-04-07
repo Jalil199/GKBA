@@ -100,6 +100,13 @@ for t in 0.0:0.1:59.9
 end
 ```
 
+## References
+
+- **PRB 107, 155141** — Core theory: GKBA with embedding for leads with internal structure
+  (basis for k-rep and pos-rep dynamics).
+- **PRL 130, 246301** — Extended GKBA: time-linear transport with dynamical lead correlators
+  (basis for `eGKBADynamics` and `ePosRepDynamics`).
+
 ## Reference solvers
 
 `KBE-Test2-prece.ipynb` — full two-time Kadanoff-Baym equations via
