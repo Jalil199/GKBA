@@ -1,0 +1,10 @@
+name = "GKBA"
+uuid = "37597dc9-5b66-44cd-99bc-03b5fd2b7d90"
+authors = ["jalil2"]
+version = "0.1.0"
+
+[deps]
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Tullio = "bc48ee85-29a4-5162-ae0b-a64e1601d4bc"

@@ -1,0 +1,11 @@
+# Generated data
+data/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Claude Code internal
+.claude/
+
+# Julia artifacts
+Manifest.toml
