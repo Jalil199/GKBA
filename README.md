@@ -1,5 +1,48 @@
 # GKBA — Generalized Kadanoff-Baym Ansatz for quantum transport
 
+## Motivation
+
+Understanding spin and charge transport in nanoscale magnetic devices requires
+solving the real-time quantum dynamics of electrons in an open system: a small
+correlated region (the *central system*) connected to macroscopic metallic leads
+held at equilibrium. The leads drive the system out of equilibrium and act as
+sources and sinks of electrons and angular momentum.
+
+The exact solution — the two-time Kadanoff-Baym equations (KBE) — scales as
+$\mathcal{O}(N_t^2)$ in memory and time, making long simulations prohibitively
+expensive. The **Generalized Kadanoff-Baym Ansatz (GKBA)** reconstructs the
+two-time Green function from its equal-time limit, reducing the problem to a set
+of coupled ODEs that scale as $\mathcal{O}(N_t)$. This makes it possible to
+simulate spin-transfer torque, spin pumping, and non-equilibrium magnetization
+dynamics over physically relevant timescales.
+
+## Goals
+
+This repository unifies a collection of research notebooks into a reusable Julia
+module. The core physics is implemented once in `src/` and each simulation
+scenario (geometry, driving protocol, approximation level) becomes a thin driver
+script in `scripts/`. Concretely:
+
+- Provide a clean, tested implementation of the GKBA and its extensions for
+  tight-binding systems with s-d coupled local moments.
+- Support multiple lead descriptions: k-space embedding (PRB 107, 155141),
+  position-space leads, and the wide-band limit with Ozaki pole expansion.
+- Enable coupled electron–spin dynamics (GKBA + Landau-Lifshitz-Gilbert) for
+  studying spin-transfer torque and spin pumping.
+
+## System
+
+The central region is a 1D tight-binding chain of $n_x \times n_y$ sites with
+Rashba spin-orbit coupling $\gamma_{so}$ and local magnetic moments $\mathbf{m}_i$
+coupled to the electron spin via s-d exchange $j_{sd}$:
+
+$$H_s = -\gamma \sum_{\langle ij \rangle} c^\dagger_i c_j + \gamma_{so}(\ldots) - j_{sd} \sum_i \mathbf{m}_i \cdot \hat{\boldsymbol{\sigma}}_i$$
+
+Two semi-infinite leads (modeled as 1D tight-binding chains with hopping $\gamma$
+and system-lead coupling $\gamma_c$) are attached to the first and last sites.
+
+---
+
 Julia module for real-time quantum transport simulations of open quantum systems
 coupled to fermionic leads. Implements several variants of the GKBA and solves
 the equations of motion for the lesser Green function $G^{<}(t)$.
