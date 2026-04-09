@@ -20,8 +20,8 @@ function compute_observables!(ov::ObservablesVar, dv::WBLDynamics)
     # Charge current  J_α = 2 Re[Tr I[α]]
     @tullio ov.curr_α[α] = real(2 * I_αij[α,i,i])
 
-    # Spin current  J^x_{α} = 4π Re[Tr(σ_x · I[α])]
-    @tullio ov.scurr_xα[x,α] = real(4π * σ[l,j,x] * I_αij[α,j,l])
+    # Spin current  J^x_{α} = 2 Re[Tr(σ_x · I[α])]
+    @tullio ov.scurr_xα[x,α] = real(2 * σ[l,j,x] * I_αij[α,j,l])
 
     # Spin density (same formula as k-rep)
     @tullio sden_xij[x,i,j] := -1im * Gls[i,j1] * σ[j1,j,x]
