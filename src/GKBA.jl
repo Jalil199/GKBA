@@ -2,7 +2,6 @@ module GKBA
 
 using LinearAlgebra
 using Tullio
-using DifferentialEquations
 
 include("constants.jl")
 include("types.jl")
