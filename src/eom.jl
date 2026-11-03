@@ -4,8 +4,10 @@
 
 function unpack!(dv::GKBADynamics, u::AbstractVector)
     a, b = dv.sz_Gleαs, dv.sz_Gls
-    dv.Gleαs_kαi = reshape(u[1:a],       dv.dims_Gleαs)
-    dv.Gls_ij    = reshape(u[a+1:a+b],   dv.dims_Gls)
+    # copy into the preallocated arrays: `reshape(u[1:a], …)` would allocate a
+    # fresh copy of the whole state on every right-hand-side evaluation
+    copyto!(dv.Gleαs_kαi, 1, u, 1, a)
+    copyto!(dv.Gls_ij,    1, u, a + 1, b)
     nothing
 end
 
@@ -57,22 +59,26 @@ function eom_gkba!(du, u, dv::GKBADynamics, t)
     hseα  = dv.hseα_ikα
     gl    = dv.gl_kα
 
-    dGleαs = similar(Gleαs)
-    dGls   = similar(Gls)
+    # write the derivatives straight into `du` (no temporaries, no final copy)
+    a, b   = dv.sz_Gleαs, dv.sz_Gls
+    dGleαs = reshape(view(du, 1:a),       dv.dims_Gleαs)
+    dGls   = reshape(view(du, a+1:a+b),   dv.dims_Gls)
 
     @tullio dGleαs[k,α,i]  = -1im *  heα[k,α] * Gleαs[k,α,i]
     @tullio dGleαs[k,α,i] +=  1im *  Gleαs[k,α,j] * hs[j,i]
     @tullio dGleαs[k,α,i] += -1im *  heαs[k,α,j] * Gls[j,i]
     @tullio dGleαs[k,α,i] +=  1im *  gl[k,α] * heαs[k,α,i]
+    if !isempty(dv.Γnh_i)
+        # non-Hermitian closure: hs → heff† = hs + iΓ/2 in the right-acting term above,
+        # i.e. an extra decay −(1/2) G Γ (Γ diagonal); nothing else changes
+        Γnh = dv.Γnh_i
+        @tullio dGleαs[k,α,i] += -0.5 * Γnh[i] * Gleαs[k,α,i]
+    end
 
     @tullio dGls[i,j]  = -1im * hs[i,j1] * Gls[j1,j]
     @tullio dGls[i,j] +=  1im * Gls[i,j1] * hs[j1,j]
     @tullio dGls[i,j] += -1im * hseα[i,k1,α] * Gleαs[k1,α,j]
     @tullio dGls[i,j] += -1im * conj(hseα[j,k1,α] * Gleαs[k1,α,i])
-
-    a, b = dv.sz_Gleαs, dv.sz_Gls
-    du[1:a]     .= vec(dGleαs)
-    du[a+1:a+b] .= vec(dGls)
     nothing
 end
 
