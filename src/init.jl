@@ -62,7 +62,7 @@ function init_gkba(;
     # G^<_s(t=0): equilibrium density matrix  G^< = i ρ_eq
     ε_s, U_s = eigen(hs_ij)
     f_s = fermi.((ε_s) * β)
-    Gls_ij = ComplexF64.(1im * (U_s' * Diagonal(f_s) * U_s))
+    Gls_ij = ComplexF64.(1im * (U_s * Diagonal(f_s) * U_s'))   # rho_eq = f(h_s) = U f U^dagger
 
     # Static lead GF  g^<_α(k) = i f(ε_k - μ_α)
     gl_kα = zeros(ComplexF64, dim_e, nα)
@@ -263,7 +263,7 @@ function init_gkba_posrep(;
     # G^<_s(t=0): equilibrium density matrix of isolated system
     ε_s, U_s = eigen(hs_ij)
     f_s      = fermi.((ε_s) * β)
-    Gls_ij   = ComplexF64.(1im * (U_s' * Diagonal(f_s) * U_s))
+    Gls_ij   = ComplexF64.(1im * (U_s * Diagonal(f_s) * U_s'))   # rho_eq = f(h_s) = U f U^dagger
 
     # Static lead GF: g^<_α(q,k) = i U f(ε - μ_α) U†
     gl_qkα = zeros(ComplexF64, dim_e, dim_e, nα)
@@ -369,7 +369,7 @@ function init_egkba_posrep(;
     # G^<_s(t=0): equilibrium density matrix of isolated system
     ε_s, U_s = eigen(hs_ij)
     f_s      = fermi.((ε_s) * β_phys)
-    Gls_ij   = ComplexF64.(1im * (U_s' * Diagonal(f_s) * U_s))
+    Gls_ij   = ComplexF64.(1im * (U_s * Diagonal(f_s) * U_s'))   # rho_eq = f(h_s) = U f U^dagger
 
     Gleαs_kαi = zeros(ComplexF64, dims_Gleαs)
     rkvec = zeros(ComplexF64, sz_Gleαs + sz_Gls + sz_Gleα)
@@ -469,7 +469,7 @@ function init_gkba_wbl(;
     # ── Initial Green functions ───────────────────────────────────────────────
     ε_s, U_s = eigen(hs_ij)
     f_s      = fermi.((ε_s) * β)
-    Gls_ij   = ComplexF64.(1im * (U_s' * Diagonal(f_s) * U_s))
+    Gls_ij   = ComplexF64.(1im * (U_s * Diagonal(f_s) * U_s'))   # rho_eq = f(h_s) = U f U^dagger
 
     Gleαs_kαij = zeros(ComplexF64, dims_Gleαs)
 
