@@ -34,6 +34,11 @@ Base.@kwdef mutable struct GKBADynamics
     dims_Gls   :: NTuple{2,Int}
     sz_Gleαs   :: Int
     sz_Gls     :: Int
+    # Non-Hermitian (Tuovinen-k / Latini) closure: diagonal of the WBL broadening
+    # matrix Γ(μ) on the system orbitals. When non-empty, eom_gkba! adds the decay
+    # −(1/2) G^<_eαs Γ to the RIGHT-acting propagation term of the mixed block only
+    # (the G^<_s commutator stays [h_s, G^<_s]). Empty = plain (Hermitian) GKBA.
+    Γnh_i      :: Vector{Float64} = Float64[]
 end
 
 # ─────────────────────────────────────────────────────────────────────────────

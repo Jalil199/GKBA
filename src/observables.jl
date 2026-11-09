@@ -1,7 +1,12 @@
 # WBL observables — defined before the k-rep version so the docstring
 # of the main method covers both via Julia's method union doc.
 #
-# I[α,i,j] = −i s_α² Γ_α·G^<_s/2 − s_α² Γ_α/4 + s_α Σ_k η_k Γ_α·F[k,α]/β
+# I[α,i,j] = +i s_α² Γ_α·G^<_s/2 + s_α² Γ_α/4 + s_α Σ_k η_k Γ_α·F[k,α]/β
+#
+# These signs follow directly from the lead-resolved contribution to
+# dρ/dt = -i dG^</dt in `eom_gkba_wbl!`.  The older signs happen to cancel
+# from the charge current at half filling, but leave a spurious equilibrium
+# spin-current background.
 function compute_observables!(ov::ObservablesVar, dv::WBLDynamics)
     s_α   = dv.s_α
     Γ_αij = dv.Γ_αij
@@ -13,8 +18,8 @@ function compute_observables!(ov::ObservablesVar, dv::WBLDynamics)
     ns    = size(dv.vm_i1x, 1)
 
     # Build current tensor I[α,i,j]
-    @tullio I_αij[α,i,j] := -1im * s_α[α]^2 * Γ_αij[α,i,l] * Gls[l,j] / 2
-    @tullio I_αij[α,i,j] += -1 * s_α[α]^2 * Γ_αij[α,i,j] / 4
+    @tullio I_αij[α,i,j] :=  1im * s_α[α]^2 * Γ_αij[α,i,l] * Gls[l,j] / 2
+    @tullio I_αij[α,i,j] +=       s_α[α]^2 * Γ_αij[α,i,j] / 4
     @tullio I_αij[α,i,j] += s_α[α] * η_k[k] * Γ_αij[α,i,l] * Gleαs[k,α,l,j] / β
 
     # Charge current  J_α = 2 Re[Tr I[α]]

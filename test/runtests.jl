@@ -1,4 +1,5 @@
 using Test
+using LinearAlgebra
 import GKBA: init_gkba, init_egkba, init_gkba_posrep, init_egkba_posrep, init_gkba_wbl,
              eom_gkba!, eom_egkba!, eom_gkba_posrep!, eom_egkba_posrep!, eom_gkba_wbl!,
              compute_observables!, unpack!
@@ -96,6 +97,61 @@ end
         dv.s_α .= 1.0
         compute_observables!(ov, dv)
         @test isapprox(sum(ov.curr_α), 0.0, atol=1e-8)
+    end
+
+    @testset "WBL charge and spin currents match the density-matrix EOM" begin
+        dv, ov = init_gkba_wbl(; nx, ny, nk, γ, γso, γc, j_sd, Temp, vm_i1x = vm_init)
+        dv.s_α .= 1.0
+
+        du = similar(dv.rkvec)
+        eom_gkba_wbl!(du, dv.rkvec, dv, 0.0)
+        compute_observables!(ov, dv)
+
+        first = dv.sz_Gleαs + 1
+        last = first + dv.sz_Gls - 1
+        gless_dot = reshape(view(du, first:last), dv.dims_Gls)
+        rho = -1im .* dv.Gls_ij
+        rho_dot = -1im .* gless_dot
+        lead_rho_dot = rho_dot + 1im .* (dv.hs_ij * rho - rho * dv.hs_ij)
+
+        @test sum(ov.curr_α) ≈ real(tr(lead_rho_dot)) atol=1e-11
+        for axis in 1:3
+            sigma = view(dv.σ_ijx, :, :, axis)
+            @test sum(view(ov.scurr_xα, axis, :)) ≈
+                  real(tr(sigma * lead_rho_dot)) atol=1e-11
+        end
+    end
+
+    @testset "Plain GKBA charge and spin currents match the density-matrix EOM" begin
+        vm_tilted = copy(vm_init)
+        vm_tilted[:, 1] .= 0.2
+        vm_tilted[:, 3] .= sqrt(1.0 - 0.2^2)
+        dv, ov = init_gkba(; nx, ny, nk, γ, γso, γc, j_sd, Temp,
+                            vm_i1x = vm_tilted)
+
+        # Move away from the initially factorized state so the lead currents are
+        # nonzero in more than one spin component.
+        for _ in 1:3
+            euler_step!(dv, eom_gkba!, dt)
+        end
+
+        du = similar(dv.rkvec)
+        eom_gkba!(du, dv.rkvec, dv, 3dt)
+        compute_observables!(ov, dv)
+
+        first = dv.sz_Gleαs + 1
+        last = first + dv.sz_Gls - 1
+        gless_dot = reshape(view(du, first:last), dv.dims_Gls)
+        rho = -1im .* dv.Gls_ij
+        rho_dot = -1im .* gless_dot
+        lead_rho_dot = rho_dot + 1im .* (dv.hs_ij * rho - rho * dv.hs_ij)
+
+        @test sum(ov.curr_α) ≈ real(tr(lead_rho_dot)) atol=1e-11
+        for axis in 1:3
+            sigma = view(dv.σ_ijx, :, :, axis)
+            @test sum(view(ov.scurr_xα, axis, :)) ≈
+                  real(tr(sigma * lead_rho_dot)) atol=1e-11
+        end
     end
 
 end
